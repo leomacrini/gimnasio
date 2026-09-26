@@ -4,6 +4,9 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from models import Base, Socio, Actividad, Profesor, Clase, Asistencia, Inscripcion
 
+# --- CONFIGURACIÓN ÚNICA DE LA PÁGINA (DEBE IR PRIMERO) ---
+st.set_page_config(page_title="Gestión de Gimnasio", page_icon="🏋️‍♂️", layout="wide")
+
 # --- CONFIGURACIÓN DE BASE DE DATOS ---
 db_url = st.secrets["db_url"]
 if db_url.startswith("postgresql://"):
@@ -23,7 +26,7 @@ def check_password():
             and st.session_state["password"] == st.secrets["admin_password"]
         ):
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Elimina la contraseña de la memoria por seguridad
+            del st.session_state["password"]  # Elimina por seguridad
             del st.session_state["username"]
         else:
             st.session_state["password_correct"] = False
@@ -32,9 +35,7 @@ def check_password():
     if st.session_state.get("password_correct", False):
         return True
 
-    # Mostrar el formulario de inicio de sesión de pantalla completa
-    st.set_page_config(page_title="Login - Gimnasio", page_icon="🔒", layout="centered")
-    
+    # Mostrar el formulario de inicio de sesión centrado
     st.markdown("<h2 style='text-align: center;'>🔒 Acceso al Sistema de Gestión</h2>", unsafe_allow_html=True)
     st.write("Por favor, introduce tus credenciales de administrador para continuar.")
     
@@ -50,9 +51,7 @@ def check_password():
 
 # --- CONTROL DE FLUJO DE LA APLICACIÓN ---
 if check_password():
-    # SI EL LOGIN ES CORRECTO, SE EJECUTA TODO EL SISTEMA DEL GIMNASIO:
-    
-    st.set_page_config(page_title="Gestión de Gimnasio", page_icon="🏋️‍♂️", layout="wide")
+    # SI EL LOGIN ES CORRECTO, SE EJECUTA TODO EL SISTEMA DEL GIMNASIO
     
     # Botón para cerrar sesión en la barra lateral
     if st.sidebar.button("🚪 Cerrar Sesión"):
