@@ -5,8 +5,12 @@ from sqlalchemy.orm import sessionmaker
 from models import Base, Socio, Actividad, Profesor, Clase, Asistencia, Inscripcion
 
 # Configuración de la base de datos (Ajusta tus credenciales)
-DATABASE_URL = st.secrets["db_url"]
-engine = create_engine(DATABASE_URL)
+# Cargar la URL de los secretos de Streamlit y asegurar el uso de psycopg2
+db_url = st.secrets["db_url"]
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+engine = create_engine(db_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Configuración de la página web
