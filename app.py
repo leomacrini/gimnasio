@@ -69,9 +69,11 @@ if opcion == "Registrar Socio":
                     session.add(nuevo_socio)
                     session.commit()
                     st.success(f"¡Socio {nombre} {apellido} registrado con éxito!")
+                # CÓDIGO NUEVO (Muestra el error técnico)
                 except Exception as e:
                     session.rollback()
                     st.error(f"Error al guardar: el documento o email ya podrían existir.")
+                    st.code(f"Detalle técnico del error:\n{str(e)}") # Esto te mostrará la causa real en pantalla
                 finally:
                     session.close()
 
