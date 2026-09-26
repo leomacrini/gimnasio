@@ -4,8 +4,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from models import Base, Socio, Actividad, Profesor, Clase, Asistencia, Inscripcion
 
-# Configuración de la base de datos (Ajusta tus credenciales)
-# Cargar la URL de los secretos de Streamlit y asegurar el uso de psycopg2
+# --- CONFIGURACIÓN DE BASE DE DATOS ---
 db_url = st.secrets["db_url"]
 if db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
@@ -13,25 +12,69 @@ if db_url.startswith("postgresql://"):
 engine = create_engine(db_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Configuración de la página web
-st.set_page_config(page_title="Gestión de Gimnasio", page_icon="🏋️‍♂️", layout="wide")
-st.title("🏋️‍♂️ Panel de Control - Gimnasio")
+# --- SISTEMA DE LOGUEO / AUTENTICACIÓN ---
+def check_password():
+    """Devuelve True si el usuario ingresó la contraseña correcta."""
+    
+    def password_entered():
+        """Comprueba si las credenciales coinciden con st.secrets."""
+        if (
+            st.session_state["username"] == st.secrets["admin_user"]
+            and st.session_state["password"] == st.secrets["admin_password"]
+        ):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Elimina la contraseña de la memoria por seguridad
+            del st.session_state["username"]
+        else:
+            st.session_state["password_correct"] = False
 
-# Menú de navegación lateral
-# Menú de navegación lateral
-opcion = st.sidebar.selectbox(
-    "Selecciona una sección:",
-    [
-        "Registrar Socio", 
-        "Ver Socios", 
-        "Registrar Profesor", 
-        "Registrar Actividad", 
-        "Programar Clase", 
-        "Inscribir Socio a Actividad",  # Nueva opción
-        "Marcar Asistencia",
-        "Administrar Bajas y Eliminaciones"  # Nueva opción
-    ]
-)
+    # Si ya se logueó con éxito anteriormente, saltar el login
+    if st.session_state.get("password_correct", False):
+        return True
+
+    # Mostrar el formulario de inicio de sesión de pantalla completa
+    st.set_page_config(page_title="Login - Gimnasio", page_icon="🔒", layout="centered")
+    
+    st.markdown("<h2 style='text-align: center;'>🔒 Acceso al Sistema de Gestión</h2>", unsafe_allow_html=True)
+    st.write("Por favor, introduce tus credenciales de administrador para continuar.")
+    
+    with st.form("login_form"):
+        st.text_input("Usuario", key="username")
+        st.text_input("Contraseña", type="password", key="password")
+        st.form_submit_button("Iniciar Sesión", on_click=password_entered)
+
+    if "password_correct" in st.session_state and not st.session_state["password_correct"]:
+        st.error("❌ Usuario o contraseña incorrectos.")
+        
+    return False
+
+# --- CONTROL DE FLUJO DE LA APLICACIÓN ---
+if check_password():
+    # SI EL LOGIN ES CORRECTO, SE EJECUTA TODO EL SISTEMA DEL GIMNASIO:
+    
+    st.set_page_config(page_title="Gestión de Gimnasio", page_icon="🏋️‍♂️", layout="wide")
+    
+    # Botón para cerrar sesión en la barra lateral
+    if st.sidebar.button("🚪 Cerrar Sesión"):
+        st.session_state["password_correct"] = False
+        st.rerun()
+        
+    st.title("🏋️‍♂️ Panel de Control - Gimnasio")
+
+    # Menú de navegación lateral
+    opcion = st.sidebar.selectbox(
+        "Selecciona una sección:",
+        [
+            "Registrar Socio", 
+            "Ver Socios", 
+            "Registrar Profesor", 
+            "Registrar Actividad", 
+            "Programar Clase", 
+            "Inscribir Socio a Actividad",  
+            "Marcar Asistencia",
+            "Administrar Bajas y Eliminaciones"  
+        ]
+    )
 
 # --- SECCIÓN: REGISTRAR SOCIO ---
 if opcion == "Registrar Socio":
